@@ -49,6 +49,8 @@ export const loginService = async (body: LoginSchemaType) => {
   const { email, password } = body;
   const user = await UserModel.findOne({ email });
   if (!user) throw new NotFoundException("Email/password not found");
+  if(user.role === UserRoleEnum.ADMIN) 
+    throw new UnauthorizedException("Invalid email/password");
 
   const isPasswordValid = await user.comparePassword(password);
 
