@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import UserModel from "../models/user.model";
+import UserModel, { UserRoleEnum } from "../models/user.model";
 import { NotFoundException, UnauthorizedException } from "../utils/app-error";
 import {
   LoginSchemaType,
@@ -66,6 +66,35 @@ export const loginService = async (body: LoginSchemaType) => {
 
   return {
     user: user.omitPassword(),
+    accessToken: token,
+    expiresAt,
+    reportSetting,
+  };
+};
+
+export const adminLogin = async (body: LoginSchemaType) => {
+  const { email, password } = body;
+
+  const admin = await UserModel.findOne({ email }).select("+password");
+  if (!admin || admin.role !== UserRoleEnum.ADMIN)
+    throw new NotFoundException("Email/password not found");
+
+  const isPasswordValid = await admin.comparePassword(password);
+
+  if (!isPasswordValid)
+    throw new UnauthorizedException("Invalid email/password");
+
+  const { token, expiresAt } = signJwtToken({ userId: admin.id });
+
+  const reportSetting = await ReportSettingModel.findOne(
+    {
+      userId: admin.id,
+    },
+    { _id: 1, frequency: 1, isEnabled: 1 }
+  ).lean();
+
+  return {
+    user: admin.omitPassword(),
     accessToken: token,
     expiresAt,
     reportSetting,

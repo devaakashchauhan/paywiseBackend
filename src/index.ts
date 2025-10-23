@@ -16,6 +16,7 @@ import reportRoutes from "./routes/report.route";
 import transactionRoutes from "./routes/transaction.route";
 import userRoutes from "./routes/user.route";
 import { BadRequestException } from "./utils/app-error";
+import adminRoutes from "./routes/admin.route";
 
 const app = express();
 const BASE_PATH = Env.BASE_PATH;
@@ -47,6 +48,7 @@ app.use(`${BASE_PATH}/user`, passportAuthenticateJwt, userRoutes);
 app.use(`${BASE_PATH}/transaction`, passportAuthenticateJwt, transactionRoutes);
 app.use(`${BASE_PATH}/report`, passportAuthenticateJwt, reportRoutes);
 app.use(`${BASE_PATH}/analytics`, passportAuthenticateJwt, analyticsRoutes);
+app.use(`${BASE_PATH}/admin`, passportAuthenticateJwt, adminRoutes);
 
 app.use(errorHandler);
 

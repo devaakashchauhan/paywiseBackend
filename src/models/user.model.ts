@@ -1,11 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { compareValue, hashValue } from "../utils/bcrypt";
 
+export enum UserRoleEnum {
+  USER = "USER",
+  ADMIN = "ADMIN",
+}
+
 export interface UserDocument extends Document {
   name: string;
   email: string;
   password: string;
   profilePicture: string | null;
+  role: keyof typeof UserRoleEnum;
   createdAt: Date;
   updatedAt: Date;
   comparePassword: (password: string) => Promise<boolean>;
@@ -34,6 +40,11 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       select: true,
       required: true,
+    },
+     role: {
+      type: String,
+      enum: Object.values(UserRoleEnum),
+      default: UserRoleEnum.USER,
     },
   },
   {
