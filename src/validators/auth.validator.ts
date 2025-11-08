@@ -20,5 +20,17 @@ export const loginSchema = z.object({
   password: passwordSchema,
 });
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const verifyOtpSchema = z.object({
+  otp: z.string().trim().min(6).max(6),
+});
+
+export const recreatePasswordSchema = z.object({
+  newPassword: passwordSchema,
+});
+
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export type LoginSchemaType = z.infer<typeof loginSchema>;

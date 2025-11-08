@@ -69,3 +69,14 @@ export class InternalServerException extends AppError {
     );
   }
 }
+
+
+export class UnauthorizedAdminException extends AppError {
+  constructor(message = "Unauthorized Admin Access", errorCode?: ErrorCodeEnumType) {
+    super(
+      message,
+      HTTPSTATUS.UNAUTHORIZED,
+      errorCode || ErrorCodeEnum.ACCESS_UNAUTHORIZED
+    );
+  }
+}

@@ -48,7 +48,7 @@ app.use(`${BASE_PATH}/user`, passportAuthenticateJwt, userRoutes);
 app.use(`${BASE_PATH}/transaction`, passportAuthenticateJwt, transactionRoutes);
 app.use(`${BASE_PATH}/report`, passportAuthenticateJwt, reportRoutes);
 app.use(`${BASE_PATH}/analytics`, passportAuthenticateJwt, analyticsRoutes);
-app.use(`${BASE_PATH}/admin`, passportAuthenticateJwt, adminRoutes);
+app.use(`${BASE_PATH}/admin`, passportAuthenticateJwt,adminRoutes);
 
 app.use(errorHandler);
 

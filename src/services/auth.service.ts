@@ -10,6 +10,8 @@ import ReportSettingModel, {
 } from "../models/report-setting.model";
 import { calulateNextReportDate } from "../utils/helper";
 import { signJwtToken } from "../utils/jwt";
+import { sendOTPEmail } from "../mailers/otp.mailer";
+import PasswordResetModel from "../models/passwordReset.model";
 
 export const registerService = async (body: RegisterSchemaType) => {
   const { email } = body;
@@ -82,6 +84,7 @@ export const adminLogin = async (body: LoginSchemaType) => {
     throw new NotFoundException("Email/password not found");
 
   const isPasswordValid = await admin.comparePassword(password);
+  console.log("Admin login attempt", admin, isPasswordValid);
 
   if (!isPasswordValid)
     throw new UnauthorizedException("Invalid email/password");
@@ -101,4 +104,42 @@ export const adminLogin = async (body: LoginSchemaType) => {
     expiresAt,
     reportSetting,
   };
+};
+
+// 1️⃣ SEND OTP
+export const sendOTPService = async (email: string) => {
+  const user = await UserModel.findOne({ email });
+  if (!user) throw new Error("User not found");
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+  // remove old OTP entries for this email
+  await PasswordResetModel.deleteMany({ email });
+
+  await PasswordResetModel.create({ email, otp, otpExpiresAt });
+
+  const emailSent = await sendOTPEmail({ email, otp });
+
+  return emailSent;
+};
+
+// 2️⃣ VERIFY OTP & GENERATE RESET TOKEN
+export const recreatePasswordService = async (email: string, otp: string,newPassword: string) => {
+  const record = await PasswordResetModel.findOne({ email, otp });
+  if (!record) throw new Error("Invalid OTP or email");
+  if (record.otpExpiresAt < new Date()) throw new Error("OTP expired");
+
+
+  const user = await UserModel.findOne({ email });
+  console.log("User found for password reset:", user);
+  if (!user) throw new Error("User not found");
+
+  user.password = newPassword;
+  await user.save();
+
+  // clear password reset record
+  await PasswordResetModel.deleteMany({ email });
+
+  return { message: "Password updated successfully" };
 };

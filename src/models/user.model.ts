@@ -12,6 +12,10 @@ export interface UserDocument extends Document {
   password: string;
   profilePicture: string | null;
   role: keyof typeof UserRoleEnum;
+  otp?: string;
+  otpExpiresAt?: Date;
+  resetPasswordJti?: string;
+  resetPasswordJtiExpiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword: (password: string) => Promise<boolean>;
@@ -20,55 +24,34 @@ export interface UserDocument extends Document {
 
 const userSchema = new Schema<UserDocument>(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-    },
-    profilePicture: {
-      type: String,
-      default: null,
-    },
-    password: {
-      type: String,
-      select: true,
-      required: true,
-    },
-     role: {
-      type: String,
-      enum: Object.values(UserRoleEnum),
-      default: UserRoleEnum.USER,
-    },
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    profilePicture: { type: String, default: null },
+    password: { type: String, select: true, required: true },
+    role: { type: String, enum: Object.values(UserRoleEnum), default: UserRoleEnum.USER },
+    otp: { type: String, select: false },
+    otpExpiresAt: { type: Date, select: false },
+    resetPasswordJti: { type: String, select: false },
+    resetPasswordJtiExpiresAt: { type: Date, select: false },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
-    if (this.password) {
-      this.password = await hashValue(this.password);
-    }
+    this.password = await hashValue(this.password);
   }
   next();
 });
 
-userSchema.methods.omitPassword = function (): Omit<UserDocument, "password"> {
-  const userObject = this.toObject();
-  delete userObject.password;
-  return userObject;
-};
-
 userSchema.methods.comparePassword = async function (password: string) {
   return compareValue(password, this.password);
+};
+
+userSchema.methods.omitPassword = function (): Omit<UserDocument, "password"> {
+  const userObj = this.toObject();
+  delete userObj.password;
+  return userObj;
 };
 
 const UserModel = mongoose.model<UserDocument>("User", userSchema);

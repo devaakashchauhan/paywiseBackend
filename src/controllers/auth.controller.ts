@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { HTTPSTATUS } from "../config/http.config";
 import { asyncHandler } from "../middlewares/asyncHandler.middlerware";
-import { loginSchema, registerSchema } from "../validators/auth.validator";
-import { adminLogin, loginService, registerService } from "../services/auth.service";
+import { forgotPasswordSchema, loginSchema, registerSchema } from "../validators/auth.validator";
+import { adminLogin, loginService, recreatePasswordService, registerService,  sendOTPService } from "../services/auth.service";
 
 export const registerController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -37,11 +37,9 @@ export const loginController = asyncHandler(
 
 export const adminLoginController = asyncHandler(
   async (req: Request, res: Response) => {
-    console.log("body:", req);
     const body = loginSchema.parse({
       ...req.body,
     });
-    console.log("Admin login attempt");
     const { user, accessToken, expiresAt, reportSetting } =
       await adminLogin(body);
 
@@ -51,6 +49,36 @@ export const adminLoginController = asyncHandler(
       accessToken,
       expiresAt,
       reportSetting,
+    });
+  }
+);
+
+
+export const forgotPasswordController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = forgotPasswordSchema.parse(req.body);
+
+    const emailSent = await sendOTPService(email);
+
+    if (!emailSent) {
+      return res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+        message: "Failed to send OTP email",
+      });
+    }
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "OTP sent to email",
+    });
+  }
+);
+
+export const verifyOtpController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, otp,newPassword } = req.body;
+    await recreatePasswordService(email, otp,newPassword);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Password recreated successfully",
     });
   }
 );

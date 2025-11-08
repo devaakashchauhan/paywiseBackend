@@ -27,3 +27,65 @@ export const updateUserService = async (
 
   return user.omitPassword();
 };
+
+
+export const getAllUsersService = async (
+  pagination: {
+    pageSize: number;
+    pageNumber: number;
+  }
+) => {
+
+
+  const { pageSize, pageNumber } = pagination;
+  const skip = (pageNumber - 1) * pageSize;
+
+  const [users, totalCount] = await Promise.all([
+    UserModel.find()
+      .skip(skip)
+      .limit(pageSize)
+      .sort({ createdAt: -1 }),
+    UserModel.countDocuments(),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  return {
+    users,
+    pagination: {
+      pageSize,
+      pageNumber,
+      totalCount,
+      totalPages,
+      skip,
+    },
+  };
+};
+
+
+export const deleteUserService = async (
+  userId: string,
+) => {
+  const deleted = await UserModel.findByIdAndDelete({
+    _id: userId,
+  });
+  if (!deleted) throw new NotFoundException("User not found");
+
+  return;
+};
+
+export const bulkDeleteUsersService = async (
+  transactionIds: string[]
+) => {
+  const result = await UserModel.deleteMany({
+    _id: { $in: transactionIds },
+  });
+
+  if (result.deletedCount === 0)
+    throw new NotFoundException("No users found");
+
+  return {
+    success: true,
+    deletedCount: result.deletedCount,
+  };
+};
