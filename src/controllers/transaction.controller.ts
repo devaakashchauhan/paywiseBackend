@@ -38,7 +38,8 @@ export const createTransactionController = asyncHandler(
 export const getAllTransactionController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
-
+    const isAdmin = req.user?.role == "ADMIN" ? true :false;
+    console.log(req.user?._id,req.user?.role,isAdmin)
     const filters = {
       keyword: req.query.keyword as string | undefined,
       type: req.query.type as keyof typeof TransactionTypeEnum | undefined,
@@ -53,7 +54,7 @@ export const getAllTransactionController = asyncHandler(
       pageNumber: parseInt(req.query.pageNumber as string) || 1,
     };
 
-    const result = await getAllTransactionService(userId, filters, pagination);
+    const result = await getAllTransactionService(userId, filters, pagination,isAdmin);
 
     return res.status(HTTPSTATUS.OK).json({
       message: "Transaction fetched successfully",

@@ -36,6 +36,7 @@ export const summaryAnalyticsController = asyncHandler(
 export const chartAnalyticsController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    const isAdmin = req.user?.role == "ADMIN" ? true : false;
     const { preset, from, to } = req.query;
 
     const filter = {
@@ -48,7 +49,8 @@ export const chartAnalyticsController = asyncHandler(
       userId,
       filter.dateRangePreset,
       filter.customFrom,
-      filter.customTo
+      filter.customTo,
+      isAdmin
     );
 
     return res.status(HTTPSTATUS.OK).json({

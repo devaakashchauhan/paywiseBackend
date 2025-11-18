@@ -41,7 +41,7 @@ export const getAllUsersService = async (
   const skip = (pageNumber - 1) * pageSize;
 
   const [users, totalCount] = await Promise.all([
-    UserModel.find()
+    UserModel.find({role:"USER"})
       .skip(skip)
       .limit(pageSize)
       .sort({ createdAt: -1 }),

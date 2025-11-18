@@ -253,7 +253,8 @@ export const chartAnalyticsService = async (
   userId: string,
   dateRangePreset?: DateRangePreset,
   customFrom?: Date,
-  customTo?: Date
+  customTo?: Date,
+  isAdmin:boolean=false
 ) => {
   const range = getDateRange(dateRangePreset, customFrom, customTo);
   const { from, to, value: rangeValue } = range;
@@ -270,7 +271,7 @@ export const chartAnalyticsService = async (
   };
 
   const result = await TransactionModel.aggregate([
-    { $match: filter },
+    ...(isAdmin ? [] : [{ $match: filter }]),
     //Group the transaction by date (YYYY-MM-DD)
     {
       $group: {

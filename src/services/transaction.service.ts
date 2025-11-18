@@ -55,13 +55,15 @@ export const getAllTransactionService = async (
   pagination: {
     pageSize: number;
     pageNumber: number;
-  }
+  },
+  isAdmin:boolean=false
 ) => {
   const { keyword, type, recurringStatus } = filters;
 
-  const filterConditions: Record<string, any> = {
-    userId,
-  };
+  const filterConditions: Record<string, any> = {};
+  if (!isAdmin) {
+    filterConditions.userId=userId;
+  }
 
   if (keyword) {
     filterConditions.$or = [

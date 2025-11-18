@@ -88,11 +88,10 @@ export const getAdminDashboard = async (req: Request, res: Response) => {
     );
 
     // ===== 3️ INCOME STATS =====
-    const incomeAgg = await TransactionModel.aggregate([
-      { $match: { type: TransactionTypeEnum.INCOME } },
-      { $group: { _id: null, totalIncome: { $sum: "$amount" } } },
-    ]);
-    const totalIncome = incomeAgg[0]?.totalIncome || 0;
+      const totalIncomeCount: number = await TransactionModel.countDocuments({
+      type: TransactionTypeEnum.INCOME,
+    });
+    // const totalIncome = incomeAgg[0]?.totalIncome || 0;
 
     const currentMonthIncomeAgg = await TransactionModel.aggregate([
       {
@@ -120,11 +119,14 @@ export const getAdminDashboard = async (req: Request, res: Response) => {
     );
 
     // ===== 4️ EXPENSE STATS =====
-    const expenseAgg = await TransactionModel.aggregate([
-      { $match: { type: TransactionTypeEnum.EXPENSE } },
-      { $group: { _id: null, totalExpense: { $sum: "$amount" } } },
-    ]);
-    const totalExpense = expenseAgg[0]?.totalExpense || 0;
+    // const expenseAgg = await TransactionModel.aggregate([
+    //   { $match: { type: TransactionTypeEnum.EXPENSE } },
+    //   { $group: { _id: null, totalExpense: { $sum: "$amount" } } },
+    // ]);
+    // const totalExpense = expenseAgg[0]?.totalExpense || 0;
+    const totalExpenseCount:number = await TransactionModel.countDocuments({
+      type: TransactionTypeEnum.EXPENSE,
+    });
 
     const currentMonthExpenseAgg = await TransactionModel.aggregate([
       {
@@ -231,7 +233,7 @@ export const getAdminDashboard = async (req: Request, res: Response) => {
               : "no change",
         },
         income: {
-          total: totalIncome,
+          total: totalIncomeCount,
           percentageChange: Number(incomeChange.toFixed(2)),
           trend:
             incomeChange > 0
@@ -241,7 +243,7 @@ export const getAdminDashboard = async (req: Request, res: Response) => {
               : "no change",
         },
         expense: {
-          total: totalExpense,
+          total: totalExpenseCount,
           percentageChange: Number(expenseChange.toFixed(2)),
           trend:
             expenseChange > 0
