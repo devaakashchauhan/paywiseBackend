@@ -1,4 +1,5 @@
 import UserModel from "../models/user.model";
+import TransactionModel from "../models/transaction.model";
 import { NotFoundException } from "../utils/app-error";
 import { UpdateUserType } from "../validators/user.validator";
 
@@ -71,6 +72,9 @@ export const deleteUserService = async (
   });
   if (!deleted) throw new NotFoundException("User not found");
 
+  // Also delete all transactions for the deleted user
+  await TransactionModel.deleteMany({ userId: deleted._id });
+
   return;
 };
 
@@ -83,6 +87,9 @@ export const bulkDeleteUsersService = async (
 
   if (result.deletedCount === 0)
     throw new NotFoundException("No users found");
+
+  // Also remove transactions for the deleted users
+  await TransactionModel.deleteMany({ userId: { $in: transactionIds } });
 
   return {
     success: true,
